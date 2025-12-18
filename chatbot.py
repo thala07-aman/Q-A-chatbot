@@ -2,14 +2,12 @@ import os
 import streamlit as st
 from PyPDF2 import PdfReader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_openai import OpenAIEmbeddings, ChatOpenAI
 from langchain_community.vectorstores import FAISS
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
-
-
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+from langchain_openai import ChatOpenAI
+from langchain_community.embeddings import HuggingFaceEmbeddings
 
 st.header("My first chatbot")
 with st.sidebar:
@@ -31,18 +29,18 @@ if file is not None:
 
     chunks = text_split.split_text(text)
 
-    embed = OpenAIEmbeddings(
-        model= "text-embedding-3-small",
-        openai_api_key = OPENAI_API_KEY
+    embed = HuggingFaceEmbeddings(
+        model_name="sentence-transformers/all-MiniLM-L6-v2"
     )
 
     vector_store = FAISS.from_texts(chunks, embed)
 
     llm = ChatOpenAI(
-        model = "gpt-4o",
+        model="llama-3.3-70b-versatile",
+        api_key=os.getenv("GROQ_API_KEY"),
+        base_url="https://api.groq.com/openai/v1",
         temperature=0,
         max_tokens=1000,
-        openai_api_key = OPENAI_API_KEY
     )
 
     prompt = ChatPromptTemplate.from_messages([
